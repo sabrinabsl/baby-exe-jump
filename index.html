@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Baby.exe Jump - Lulu</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f8f0ff; font-family: monospace; overflow: hidden; }
+    canvas { display: block; margin: auto; background: #cba5ec; border: 4px solid #fff; }
+    #reveal {
+      display: none;
+      position: absolute;
+      top: 30%;
+      width: 100%;
+      text-align: center;
+      font-size: 2em;
+      color: #6a1b9a;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="600" height="200"></canvas>
+  <div id="reveal">🎉 É uma menina! 💜<br><button onclick="location.reload()">Jogar novamente</button></div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let lulu = { x: 50, y: 160, w: 20, h: 20, vy: 0, jumping: false };
+    let gravity = 1.5;
+    let obstacles = [];
+    let frame = 0;
+    let jumpCount = 0;
+    let gameOver = false;
+
+    function drawLulu() {
+      ctx.fillStyle = '#000'; // corpo
+      ctx.fillRect(lulu.x, lulu.y, lulu.w, lulu.h);
+      ctx.fillStyle = '#3f51b5'; // boné
+      ctx.fillRect(lulu.x, lulu.y - 5, lulu.w, 5);
+    }
+
+    function drawObstacle(obs) {
+      ctx.fillStyle = '#4e342e';
+      ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+    }
+
+    function jump() {
+      if (!lulu.jumping) {
+        lulu.vy = -15;
+        lulu.jumping = true;
+      }
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Gravidade
+      lulu.y += lulu.vy;
+      lulu.vy += gravity;
+      if (lulu.y > 160) {
+        lulu.y = 160;
+        lulu.vy = 0;
+        lulu.jumping = false;
+      }
+
+      drawLulu();
+
+      if (frame % 90 === 0) {
+        obstacles.push({ x: 600, y: 160, w: 20, h: 20 });
+      }
+
+      for (let i = 0; i < obstacles.length; i++) {
+        let obs = obstacles[i];
+        obs.x -= 5;
+        drawObstacle(obs);
+
+        // Colisão
+        if (
+          lulu.x < obs.x + obs.w &&
+          lulu.x + lulu.w > obs.x &&
+          lulu.y < obs.y + obs.h &&
+          lulu.y + lulu.h > obs.y
+        ) {
+          gameOver = true;
+        }
+
+        if (!obs.passed && obs.x + obs.w < lulu.x) {
+          obs.passed = true;
+          jumpCount++;
+          if (jumpCount === 8) {
+            document.getElementById('reveal').style.display = 'block';
+            cancelAnimationFrame(animation);
+          }
+        }
+      }
+
+      frame++;
+      if (!gameOver) animation = requestAnimationFrame(update);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') jump();
+    });
+
+    let animation = requestAnimationFrame(update);
+  </script>
+</body>
+</html>

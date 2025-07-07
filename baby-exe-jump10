@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Baby.exe Jump - Lulu</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(to bottom, #e0d4f7, #ccf5df);
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #ffffff;
+      border: 2px solid #999;
+      border-radius: 8px;
+    }
+    #reveal, #start-message {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      font-size: 2em;
+      color: #4a0072;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+    }
+    #reveal {
+      top: 30%;
+      display: none;
+    }
+    #start-message {
+      top: 25%;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #81c784;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #66bb6a;
+    }
+  </style>
+</head>
+<body>
+  <div id="start-message">
+    Angela, Felipe e Lulu, chegou a hora!!!<br>
+    <button onclick="startGame()">Começar</button>
+  </div>
+  <canvas id="gameCanvas" width="600" height="200" style="display:none;"></canvas>
+  <div id="reveal">🎉 É uma menina! 💜<br><button onclick="location.reload()">Jogar novamente</button></div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let lulu = { x: 50, y: 160, w: 20, h: 20, vy: 0, jumping: false };
+    let gravity = 1.5;
+    let obstacles = [];
+    let frame = 0;
+    let jumpCount = 0;
+    let gameOver = false;
+    let animation;
+
+    function drawLulu() {
+      ctx.fillStyle = '#6a1b9a';
+      ctx.fillRect(lulu.x, lulu.y, lulu.w, lulu.h);
+      ctx.fillStyle = '#81c784';
+      ctx.fillRect(lulu.x, lulu.y - 5, lulu.w, 5);
+    }
+
+    function drawObstacle(obs) {
+      ctx.fillStyle = '#4a4a4a';
+      ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+    }
+
+    function jump() {
+      if (!lulu.jumping) {
+        lulu.vy = -15;
+        lulu.jumping = true;
+      }
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      lulu.y += lulu.vy;
+      lulu.vy += gravity;
+      if (lulu.y > 160) {
+        lulu.y = 160;
+        lulu.vy = 0;
+        lulu.jumping = false;
+      }
+
+      drawLulu();
+
+      if (frame % 90 === 0) {
+        obstacles.push({ x: 600, y: 160, w: 20, h: 20 });
+      }
+
+      for (let i = 0; i < obstacles.length; i++) {
+        let obs = obstacles[i];
+        obs.x -= 5;
+        drawObstacle(obs);
+
+        if (
+          lulu.x < obs.x + obs.w &&
+          lulu.x + lulu.w > obs.x &&
+          lulu.y < obs.y + obs.h &&
+          lulu.y + lulu.h > obs.y
+        ) {
+          gameOver = true;
+        }
+
+        if (!obs.passed && obs.x + obs.w < lulu.x) {
+          obs.passed = true;
+          jumpCount++;
+          if (jumpCount === 10) {
+            document.getElementById('reveal').style.display = 'block';
+            cancelAnimationFrame(animation);
+          }
+        }
+      }
+
+      frame++;
+      if (!gameOver) animation = requestAnimationFrame(update);
+    }
+
+    function startGame() {
+      document.getElementById('start-message').style.display = 'none';
+      canvas.style.display = 'block';
+      animation = requestAnimationFrame(update);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') jump();
+    });
+  </script>
+</body>
+</html>
